@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Change log &#8212; aiocoap 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="change-log">
+<h1>Change log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h1>
+<p>This summarizes the changes between released versions. For a complete change
+log, see the git history. For details on the changes, see the respective git
+commits indicated at the start of the entry.</p>
+<div class="section" id="version-0-4a1">
+<h2>Version 0.4a1<a class="headerlink" href="#version-0-4a1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="security-fixes">
+<h3>Security fixes<a class="headerlink" href="#security-fixes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>18ddf8c: Proxy now only creates log files when explicitly requested</li>
+<li>Support for secured protocols added (see Experimental Features)</li>
+</ul>
+</div>
+<div class="section" id="experimental-features">
+<h3>Experimental features<a class="headerlink" href="#experimental-features" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">Support for OSCORE (formerly OSCOAP) and CoAP over DTLS was included</p>
+<p>These features both lack proper key management so far, which will be
+available in a 0.4 release.</p>
+</li>
+<li><p class="first">Added implementations of Resource Directory (RD) server and endpoint</p>
+</li>
+<li><p class="first">Support for different transports was added. The transport backends to enable
+are chosen heuristically depending on operating system and installed modules.</p>
+<ul class="simple">
+<li>Transports for platforms not supporting all POSIX operations to run CoAP
+correctly were added (simple6, simplesocketserver). This should allow
+running aiocoap on Windows, MacOS and using uvloop, but with some
+disadvantages (see the the respective transport documentations).</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="breaking-changes">
+<h3>Breaking changes<a class="headerlink" href="#breaking-changes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>8641b5c: Blockwise handling is now available as stand-alone responder.
+Applications that previously created a Request object rather than using
+Protocol.request now need to create a BlockwiseRequest object.</li>
+<li>8641b5c: The <code class="docutils literal"><span class="pre">.observation</span></code> property can now always be present in
+responses, and applications that previously checked for its presence should
+now check whether it is None.</li>
+<li>cdfeaeb: The multicast interface using queuewithend was replaced with
+asynchronous iterators</li>
+<li>d168f44: Handling of sub-sites changed, subsites&#8217; root resources now need to
+reside at path <code class="docutils literal"><span class="pre">(&quot;&quot;,)</span></code></li>
+</ul>
+</div>
+<div class="section" id="deprecations">
+<h3>Deprecations<a class="headerlink" href="#deprecations" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>e50e994: Rename UnsupportedMediaType to UnsupportedContentFormat</li>
+<li>9add964 and others: The <code class="docutils literal"><span class="pre">.remote</span></code> message property is not necessarily a
+tuple any more, and has its own interface</li>
+<li>25cbf54, c67c2c2: Drop support for Python versions &lt; 3.4.4; the required
+version will be incremented to 3.5 soon.</li>
+</ul>
+</div>
+<div class="section" id="assorted-changes">
+<h3>Assorted changes<a class="headerlink" href="#assorted-changes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>750d88d: Errors from predefined exceptions like BadRequest(&#8221;...&#8221;) are now
+sent with their text message in the diagnostic payload</li>
+<li>3c7635f: Examples modernized</li>
+<li>97fc5f7: Multicast handling changed (but is still not fully supported)</li>
+<li>933f2b1: Added support for the  No-Response option (RFC7967)</li>
+<li>baa84ee: V4MAPPED addresses are now properly displayed as IPv4 addresses</li>
+</ul>
+</div>
+<div class="section" id="tests">
+<h3>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Test suite is now run at Gitlab, and coverage reported</li>
+<li>b2396bf: Test suite probes for usable hostnames for localhost</li>
+<li>b4c5b1d: Allow running tests with a limited set of extras installed</li>
+<li>General improvements on coverage</li>
+</ul>
+</div>
+</div>
+<div class="section" id="version-0-3">
+<h2>Version 0.3<a class="headerlink" href="#version-0-3" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="features">
+<h3>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>4d07615: ICMP errors are handled</li>
+<li>1b61a29: Accept &#8216;fe80::...%eth0&#8217; style addresses</li>
+<li>3c0120a: Observations provide modern <code class="docutils literal"><span class="pre">async</span> <span class="pre">for</span></code> interface</li>
+<li>4e4ff7c: New demo: file server</li>
+<li>ef2e45e, 991098b, 684ccdd: Messages can be constructed with options,
+modified copies can be created with the <code class="docutils literal"><span class="pre">.copy</span></code> method, and default codes
+are provided</li>
+<li>08845f2: Request objects have <code class="docutils literal"><span class="pre">.response_nonraising</span></code> and
+<code class="docutils literal"><span class="pre">.response_raising</span></code> interfaces for easier error handling</li>
+<li>ab5b88a, c49b5c8: Sites can be nested by adding them to an existing site,
+catch-all resources can be created by subclassing PathCapable</li>
+</ul>
+</div>
+<div class="section" id="possibly-breaking-changes">
+<h3>Possibly breaking changes<a class="headerlink" href="#possibly-breaking-changes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>ab5b88a: Site nesting means that server resources do not get their original
+Uri-Path any more</li>
+<li>bc76a7c: Location-{Path,Query} were opaque (bytes) objects instead of
+strings; disctinction between accidental and intentional opaque options is
+now clarified</li>
+</ul>
+</div>
+<div class="section" id="small-features">
+<h3>Small features<a class="headerlink" href="#small-features" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>2bb645e: set_request_uri allows URI parsing without sending Uri-Host</li>
+<li>e6b4839: Take block1.size_exponent as a sizing hint when sending block1 data</li>
+<li>9eafd41: Allow passing in a loop into context creation</li>
+<li>9ae5bdf: ObservableResource: Add update_observation_count</li>
+<li>c9f21a6: Stop client-side observations when unused</li>
+<li>dd46682: Drop dependency on obscure built-in IN module</li>
+<li>a18c067: Add numbers from draft-ietf-core-etch-04</li>
+<li>fabcfd5: .well-known/core supports filtering</li>
+</ul>
+</div>
+<div class="section" id="internals">
+<h3>Internals<a class="headerlink" href="#internals" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>f968d3a: All low-level networking is now done in aiocoap.transports; it&#8217;s not
+really hotpluggable yet and only UDPv6 (with implicit v4 support) is
+implemented, but an extension point for alternative transports.</li>
+<li>bde8c42: recvmsg is used instead of recvfrom, requiring some asyncio hacks</li>
+</ul>
+</div>
+<div class="section" id="package-management">
+<h3>Package management<a class="headerlink" href="#package-management" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>01f7232, 0a9d03c: aiocoap-client and -proxy are entry points</li>
+<li>0e4389c: Establish an extra requirement for LinkHeader</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Change log</a><ul>
+<li><a class="reference internal" href="#version-0-4a1">Version 0.4a1</a><ul>
+<li><a class="reference internal" href="#security-fixes">Security fixes</a></li>
+<li><a class="reference internal" href="#experimental-features">Experimental features</a></li>
+<li><a class="reference internal" href="#breaking-changes">Breaking changes</a></li>
+<li><a class="reference internal" href="#deprecations">Deprecations</a></li>
+<li><a class="reference internal" href="#assorted-changes">Assorted changes</a></li>
+<li><a class="reference internal" href="#tests">Tests</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#version-0-3">Version 0.3</a><ul>
+<li><a class="reference internal" href="#features">Features</a></li>
+<li><a class="reference internal" href="#possibly-breaking-changes">Possibly breaking changes</a></li>
+<li><a class="reference internal" href="#small-features">Small features</a></li>
+<li><a class="reference internal" href="#internals">Internals</a></li>
+<li><a class="reference internal" href="#package-management">Package management</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/doc/news.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Christian Amsuss.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../_sources/doc/news.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

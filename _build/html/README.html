@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aiocoap – The Python CoAP library &#8212; aiocoap 1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="aiocoap-the-python-coap-library">
+<h1>aiocoap &#8211; The Python CoAP library<a class="headerlink" href="#aiocoap-the-python-coap-library" title="Permalink to this headline">¶</a></h1>
+<p>The aiocoap package is a Python implementation of CoAP, the Constrained
+Application Protocol (<a class="reference external" href="http://tools.ietf.org/html/rfc7252">RFC 7252</a>, more info at <a class="reference external" href="http://coap.technology/">http://coap.technology/</a>).</p>
+<p>It uses the Python 3&#8217;s asynchronous I/O to facilitate concurrent operations
+while maintaining a simple to use interface and not depending on anything
+outside the standard library.</p>
+<p>aiocoap is originally based on <a class="reference external" href="https://github.com/siskin/txThings">txThings</a>. If you want to use CoAP in your
+existing twisted application, or can not migrate to Python 3 yet, that is
+probably more useful to you than aiocoap.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>For how to use the aiocoap library, have a look at the <a class="reference external" href="http://aiocoap.readthedocs.io/en/latest/guidedtour.html">guidedtour</a>, or at
+the <a class="reference external" href="http://aiocoap.readthedocs.io/en/latest/examples.html">examples</a> and <a class="reference external" href="http://aiocoap.readthedocs.io/en/latest/tools.html">tools</a> provided. All the details are in the
+<a class="reference external" href="http://aiocoap.readthedocs.io/en/latest/module/aiocoap.html">aiocoap module</a> documentation.</p>
+<p>All examples can be run directly from a source code copy. If you prefer to
+install it, the usual Python mechanisms apply (see <a class="reference external" href="http://aiocoap.readthedocs.io/en/latest/installation.html">installation</a>).</p>
+</div>
+<div class="section" id="features-standards">
+<h2>Features / Standards<a class="headerlink" href="#features-standards" title="Permalink to this headline">¶</a></h2>
+<p>This library supports the following standards in full or partially:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://tools.ietf.org/html/rfc7252">RFC7252</a> (CoAP): missing are a caching and cross proxy implementation, proper
+multicast (support is incomplete); DTLS support is client-side only so far,
+and lacking some security properties.</li>
+<li><a class="reference external" href="https://tools.ietf.org/html/rfc7641">RFC7641</a> (Observe): Reordering, re-registration, and active cancellation are
+missing.</li>
+<li><a class="reference external" href="https://tools.ietf.org/html/rfc7959">RFC7959</a> (Blockwise): Multicast exceptions missing.</li>
+<li><a class="reference external" href="https://tools.ietf.org/html/rfc7967">RFC7967</a> (No-Response): Basic support, but not automated in library</li>
+<li><a class="reference external" href="https://tools.ietf.org/html/rfc8132">RFC8132</a> (PATCH/FETCH): Types and codes known, FETCH observation supported</li>
+<li><a class="reference external" href="https://tools.ietf.org/html/draft-ietf-core-resource-directory-12">draft-ietf-core-resource-directory</a>: A standalone resource directory
+server is provided along with a library function to register at one. They
+lack support for groups, PATCHes to endpoint locations and security
+considerations, and are generally rather simplistic.</li>
+<li><a class="reference external" href="https://tools.ietf.org/html/draft-ietf-core-object-security-06">draft-ietf-core-object-security-06</a> (OSCORE, formerly OSCOAP): Infrastructure for supporting
+it is in place (lacking observe and inner-blockwise support), but no simple
+way exists yet for launching protected servers or requests yet.</li>
+</ul>
+<p>If something described by one of the standards but not implemented, it is
+considered a bug; please file at the <a class="reference external" href="https://github.com/chrysn/aiocoap/issues">github issue tracker</a>. (If it&#8217;s not on
+the list or in the excluded items, file a wishlist item at the same location).</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>Basic aiocoap works out of the box on <a class="reference external" href="https://www.python.org/">Python</a> 3.5 or greater. Full
+functionality is currently available only on Linux and possibly some BSDs (see
+<a class="reference external" href="https://github.com/chrysn/aiocoap/issues?q=is%3Aissue+is%3Aopen+label%3A%22platform+support%22">platform issues</a>). For Windows, macOS and uvloop, limited transports for
+<a class="reference external" href="http://aiocoap.readthedocs.io/en/latest/module/aiocoap.transports.simpleserversocket.html">server</a> and <a class="reference external" href="http://aiocoap.readthedocs.io/en/latest/module/aiocoap.transports.simple6.html">client</a> operation are available and automatically enabled, but see
+their respective caveats.</p>
+<p>Some components (eg. servers that should auto-generate <code class="docutils literal"><span class="pre">.well-known/core</span></code>
+resources, OSCORE, DTLS) require additional packages to be present; they are
+automatically installed when following the <a class="reference external" href="http://aiocoap.readthedocs.io/en/latest/installation.html">installation</a> instructions. For
+slimmer systems, see <code class="docutils literal"><span class="pre">setup.py</span></code> for the definition of the &#8220;extras&#8221;.</p>
+<p>Developers of projects building on aiocoap should specify the required extras
+in their own dependency statements. For example, an application that provides a
+server with a <code class="docutils literal"><span class="pre">.well-known/core</span></code> file and OSCORE will want to depend on
+<code class="docutils literal"><span class="pre">aiocoap[linkheader,oscore]</span> <span class="pre">&gt;=</span> <span class="pre">0.4a1</span></code>.</p>
+</div>
+<div class="section" id="development">
+<h2>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h2>
+<p>aiocoap tries to stay close to <a class="reference external" href="http://legacy.python.org/dev/peps/pep-0008/">PEP8</a> recommendations and general best practice,
+and should thus be easy to contribute to.</p>
+<p>Documentation is built using <a class="reference external" href="http://sphinx-doc.org/">sphinx</a> with <code class="docutils literal"><span class="pre">./setup.py</span> <span class="pre">build_sphinx</span></code>; hacks
+used there are described in <code class="docutils literal"><span class="pre">./doc/README.doc</span></code>.</p>
+<p>Bugs (ranging from &#8220;design goal&#8221; and &#8220;wishlist&#8221; to typos) are currently tracked
+in the <a class="reference external" href="https://github.com/chrysn/aiocoap/issues">github issue tracker</a>.</p>
+<p>Unit tests are implemented in the <code class="docutils literal"><span class="pre">./tests/</span></code> directory and easiest run using
+<code class="docutils literal"><span class="pre">./setup.py</span> <span class="pre">test</span></code>; complete test coverage is aimed for, but not yet complete
+(and might never be, as the error handling for pathological network partners is
+hard to trigger with a library designed not to misbehave). The tests are
+regularly run at the <a class="reference external" href="https://gitlab.com/energyharvesting/aiocoap/commits/master">CI suite at gitlab</a>, from where <a class="reference external" href="https://energyharvesting.gitlab.io/aiocoap/">coverage reports</a> are
+available.</p>
+</div>
+<div class="section" id="relevant-urls">
+<h2>Relevant URLs<a class="headerlink" href="#relevant-urls" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first"><a class="reference external" href="https://github.com/chrysn/aiocoap">https://github.com/chrysn/aiocoap</a></p>
+<p>This is where the latest source code can be found, and bugs can be reported.
+Generally, this serves as the project web site.</p>
+</li>
+<li><p class="first"><a class="reference external" href="http://aiocoap.readthedocs.org/">http://aiocoap.readthedocs.org/</a></p>
+<p>Online documentation built from the sources.</p>
+</li>
+<li><p class="first"><a class="reference external" href="http://coap.technology/">http://coap.technology/</a></p>
+<p>Further general information on CoAP, the standard documents involved, and
+other implementations and tools available.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="licensing">
+<h2>Licensing<a class="headerlink" href="#licensing" title="Permalink to this headline">¶</a></h2>
+<p>aiocoap is published under the MIT License, see <a class="reference external" href="LICENSE">LICENSE</a> for details.</p>
+<p>When using aiocoap for a publication, please cite it according to the output of
+<code class="docutils literal"><span class="pre">./setup.py</span> <span class="pre">cite</span> <span class="pre">[--bibtex]</span></code>.</p>
+<dl class="docutils">
+<dt>Copyright (c) 2012-2014 Maciej Wasilak &lt;<a class="reference external" href="http://sixpinetrees.blogspot.com/">http://sixpinetrees.blogspot.com/</a>&gt;,</dt>
+<dd>2013-2014 Christian Amsüss &lt;<a class="reference external" href="mailto:c&#46;amsuess&#37;&#52;&#48;energyharvesting&#46;at">c<span>&#46;</span>amsuess<span>&#64;</span>energyharvesting<span>&#46;</span>at</a>&gt;</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">aiocoap &#8211; The Python CoAP library</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#features-standards">Features / Standards</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#development">Development</a></li>
+<li><a class="reference internal" href="#relevant-urls">Relevant URLs</a></li>
+<li><a class="reference internal" href="#licensing">Licensing</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/README.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Christian Amsuss.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/README.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

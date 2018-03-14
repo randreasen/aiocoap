@@ -1,0 +1,1 @@
+{"coaps://localhost/*": {"dtls": {"psk": {"ascii": "secretPSK"}, "client-identity": {"ascii": "client_Identity"}}}}

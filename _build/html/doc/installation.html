@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installing aiocoap &#8212; aiocoap 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installing-aiocoap">
+<h1>Installing aiocoap<a class="headerlink" href="#installing-aiocoap" title="Permalink to this headline">¶</a></h1>
+<p>In most situations, it is recommended to install the latest released version of
+aiocoap. If you do not use a distribution that has aiocoap packaged, or if you
+use Python&#8217;s virtual environments, this is done with</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip3 install --upgrade &quot;aiocoap[all]&quot;
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">pip3</span></code> is not available on your platform, you can manually download and
+unpack the latest <code class="docutils literal"><span class="pre">.tar.gz</span></code> file from the <a class="reference external" href="https://pypi.python.org/pypi/aiocoap/">Python package index</a> and run</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./setup.py install
+</pre></div>
+</div>
+<div class="section" id="development-version">
+<span id="installation-development"></span><h2>Development version<a class="headerlink" href="#development-version" title="Permalink to this headline">¶</a></h2>
+<p>If you want to play with aiocoap&#8217;s internals or consider contributing to the
+project, the suggested way of operation is getting a Git checkout of the
+project:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git clone https://github.com/chrysn/aiocoap
+</pre></div>
+</div>
+<p>You can then use the project from that location, or install it with</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip3 install --upgrade &quot;.[all,docs]&quot;
+</pre></div>
+</div>
+<p>If you need to install the latest development version of aiocoap but do not
+plan on editing (eg. because you were asked in the course of a bug report to
+test something against the latest aiocoap version), you can install it directly
+from the web:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip3 install --upgrade &quot;git+https://github.com/chrysn/aiocoap#egg=aiocoap[all]&quot;
+</pre></div>
+</div>
+<p>With the <code class="docutils literal"><span class="pre">-e</span></code> option, that is also a viable option if you want to modify
+aiocoap and pip&#8217;s <a class="reference external" href="https://pip.pypa.io/en/stable/reference/pip_install/#vcs-support">choice of checkout directories</a> is suitable for you.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installing aiocoap</a><ul>
+<li><a class="reference internal" href="#development-version">Development version</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/doc/installation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Christian Amsuss.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../_sources/doc/installation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

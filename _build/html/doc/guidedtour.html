@@ -1,0 +1,313 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Guided Tour through aiocoap &#8212; aiocoap 1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="guided-tour-through-aiocoap">
+<h1>Guided Tour through aiocoap<a class="headerlink" href="#guided-tour-through-aiocoap" title="Permalink to this headline">¶</a></h1>
+<p>This page gets you started on the concepts used in aiocoap; it will assume
+rough familiarity with what CoAP is, and a working knowledge of Python
+development, but introduce you to asynchronous programming and explain some
+CoAP concepts along with the aiocoap API.</p>
+<p>If you are already familiar with asynchronous programming and/or some other
+concepts involved, or if you prefer reading code to reading tutorials, you
+might want to go after the <a class="reference internal" href="examples.html"><span class="doc">Usage Examples</span></a> instead.</p>
+<div class="section" id="first-some-tools">
+<h2>First, some tools<a class="headerlink" href="#first-some-tools" title="Permalink to this headline">¶</a></h2>
+<p>Before we get into programming, let&#8217;s establish tools with which we can probe a
+server, and a server itself. If you have not done it already,
+<a class="reference internal" href="installation.html"><span class="doc">install aiocoap for development</span></a>.</p>
+<p>Start off with the sample server by running the following in a terminal inside
+the aiocoap directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./server.py
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The <code class="docutils literal"><span class="pre">$</span></code> sign indicates the prompt; you enter everything after it in
+a terminal shell. Lines not starting with a dollar sign are the program
+output, if any. Later on, we&#8217;ll see lines starting with <code class="docutils literal"><span class="pre">&gt;&gt;&gt;</span></code>; those are
+run inside a Python interpreter.</p>
+<p class="last">I recommend that you use the <a class="reference external" href="http://ipython.org/">IPython</a> interpreter. One useful feature for
+following through this tutorial is that you can copy full lines (including
+any <code class="docutils literal"><span class="pre">&gt;&gt;&gt;</span></code> parts) to the clipboard and use the <code class="docutils literal"><span class="pre">%paste</span></code> IPython command
+to run it, taking care of indentation etc.</p>
+</div>
+<p>This has started a CoAP server with some demo content, and keeps running until
+you terminate it with Ctrl-C.</p>
+<p>In a separate terminal, use <a class="reference internal" href="tools.html"><span class="doc">the aiocoap-client tool</span></a> to send a
+GET request to the server:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./aiocoap-client coap://localhost/.well-known/core
+&lt;/time&gt;; obs, &lt;/.well-known/core&gt;; ct=40, &lt;/other/separate&gt;, &lt;/other/block&gt;
+</pre></div>
+</div>
+<p>The address we&#8217;re using here is a resource on the local machine (<code class="docutils literal"><span class="pre">localhost</span></code>)
+at the well-known location <code class="docutils literal"><span class="pre">.well-known/core</span></code>, which in CoAP is the go-to
+location if you don&#8217;t know anything about the paths on the server beforehand.
+It tells that there is a resource at the path <code class="docutils literal"><span class="pre">/time</span></code> that has the <code class="docutils literal"><span class="pre">obs</span></code>ervable attribute, a resource at the path <code class="docutils literal"><span class="pre">/.well-known/core</span></code>, and two more
+at <code class="docutils literal"><span class="pre">/other/separate</span></code> and <code class="docutils literal"><span class="pre">/other/block</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Getting &#8220;5.00 Internal Server Error&#8221; instead? Install the
+<a class="reference external" href="https://pypi.python.org/pypi/LinkHeader">link_header module</a> and restart the server, or trust me that the output
+would look like that if it were installed and proceed.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There can be a &#8220;(No newline at end of message)&#8221; line below your
+output. This just makes sure your prompt does not start in the middle of
+the screen. I&#8217;ll just ignore that.</p>
+</div>
+<p>Let&#8217;s see what <code class="docutils literal"><span class="pre">/time</span></code> gives us:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./aiocoap-client coap://localhost/time
+2016-12-07 10:08
+</pre></div>
+</div>
+<p>The response should have arrived immediately: The client sent a message to the
+server in which it requested the resource at <code class="docutils literal"><span class="pre">/time</span></code>, and the server could
+right away send a message back. In contrast, <code class="docutils literal"><span class="pre">/other/separate</span></code> is slower:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ ./aiocoap-client coap://localhost/others/separate
+Three rings for the elven kings [abbreviated]
+</pre></div>
+</div>
+<p>The response to this message comes back with a delay. Here, it is simulated by
+the server; in real-life situations, this delay can stem from network latency,
+servers waiting for some sensor to read out a value, slow hard drives etc.</p>
+</div>
+<div class="section" id="a-request">
+<h2>A request<a class="headerlink" href="#a-request" title="Permalink to this headline">¶</a></h2>
+<p>In order to run a similar request programmatically, we&#8217;ll need a request
+message:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">aiocoap</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">GET</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;coap://localhost/other/separate&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="go">&lt;aiocoap.Message at 0x0123deadbeef: None GET (ID None, token b&#39;&#39;) remote None, 2 option(s)&gt;</span>
+</pre></div>
+</div>
+<p>The message consists of several parts. The non-optional ones are largely
+handled by aiocoap (message type, ID, token and remote are all None or empty
+here and will be populated when the message is sent). The options are roughly
+equivalent to what you might know as HTTP headers:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">opt</span>
+<span class="go">&lt;aiocoap.options.Options at 0x0123deadbef0: URI_HOST: localhost, URI_PATH: other / separate&gt;</span>
+</pre></div>
+</div>
+<p>You might have noticed that the Uri-Path option has whitespace around the
+slash. This is because paths in CoAP are not a structured byte string with
+slashes in it (as they are in HTTP), but actually repeated options of a (UTF-8)
+string, which are represented as a tuple in Python:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">uri_path</span>
+<span class="go">(&#39;other&#39;, &#39;separate&#39;)</span>
+</pre></div>
+</div>
+<p>Now to send that network as a request over the network, we&#8217;ll need a network
+protocol object. That has a request method, and can give a response (bear with
+me, these examples don&#8217;t actually work):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">protocol</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">response</span>
+<span class="go">&lt;Future pending cb=[Request._response_cancellation_handler()]&gt;</span>
+</pre></div>
+</div>
+<p>That is obviously not a proper response &#8211; yet. If the protocol returned a
+finished response, the program couldn&#8217;t do any work in the meantime. Because a
+Future is returned, the user can start other requests in parallel, or do other
+processing in the meantime. For now, all we want is to wait until the response
+is ready:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">protocol</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">response</span>
+<span class="go">&lt;aiocoap.Message at 0x0123deadbef1: Type.CON 2.05 Content (ID 51187, token b&#39;\x00\x00\x81\x99&#39;) remote &lt;UDP6EndpointAddress [::ffff:127.0.0.1]:5683 with local address&gt;, 186 byte(s) payload&gt;</span>
+</pre></div>
+</div>
+<p>Here, we have a successful message (&#8220;2.05 Content&#8221; is the rough equivalent of
+HTTP&#8217;s &#8220;200 OK&#8221;, and the 186 bytes of payload look promising). Until we can
+dissect that, we&#8217;ll have to get those asynchronous things to work properly,
+though.</p>
+</div>
+<div class="section" id="asynchronous-operation">
+<h2>Asynchronous operation<a class="headerlink" href="#asynchronous-operation" title="Permalink to this headline">¶</a></h2>
+<p>The interactive Python shell does not work in an asynchronous fashion (<a class="reference external" href="https://github.com/ipython/ipython/issues/9166">yet?</a>)
+&#8211; it follows a strict &#8220;read, evaluate, print&#8221; loop (REPL), similar to how a
+Python program as a whole is executed. To launch asynchronous processing, we&#8217;ll
+use the following shorthand:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span><span class="o">.</span><span class="n">run_until_complete</span>
+</pre></div>
+</div>
+<p>With that, we can run asynchronous functions; note that any function that
+<code class="docutils literal"><span class="pre">await</span></code>s anything is itself asynchronous and has to be declared
+accordingly. Now we can run what did not work before:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">protocol</span> <span class="o">=</span> <span class="k">await</span> <span class="n">Context</span><span class="o">.</span><span class="n">create_client_context</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">GET</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;coap://localhost/other/separate&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">protocol</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">response</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<span class="go">&lt;aiocoap.Message at 0x0123deadbef1: Type.CON 2.05 Content (ID 51187, token b&#39;\x00\x00\x81\x99&#39;) remote &lt;UDP6EndpointAddress [::ffff:127.0.0.1]:5683 with local address&gt;, 186 byte(s) payload&gt;</span>
+</pre></div>
+</div>
+<p>That&#8217;s better!</p>
+<p>(Now the <code class="docutils literal"><span class="pre">protocol</span></code> object could also be created. That doesn&#8217;t actually take
+long time, but could, depending on the operating system).</p>
+</div>
+<div class="section" id="the-response">
+<h2>The response<a class="headerlink" href="#the-response" title="Permalink to this headline">¶</a></h2>
+<p>To dissect the response, let&#8217;s make sure we have it available:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">protocol</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">Context</span><span class="o">.</span><span class="n">create_client_context</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">GET</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;coap://localhost/other/separate&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">response</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+<span class="go">&lt;aiocoap.Message at 0x0123deadbef1: Type.CON 2.05 Content (ID 51187, token b&#39;\x00\x00\x81\x99&#39;) remote &lt;UDP6EndpointAddress [::ffff:127.0.0.1]:5683 with local address&gt;, 186 byte(s) payload&gt;</span>
+</pre></div>
+</div>
+<p>The response obtained in the main function is a message like the request
+message, just that it has a different code (2.05 is of the successful 2.00
+group), incidentally no options (because it&#8217;s a very simple server), and actual
+data.</p>
+<p>The response code is represented in Python by an enum with some utility
+functions; the remote address (actually remote-local address pair) is an object
+too:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">code</span>
+<span class="go">&lt;Successful Response Code 69 &quot;2.05 Content&quot;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">is_successful</span><span class="p">()</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">remote</span><span class="o">.</span><span class="n">hostinfo</span>
+<span class="go">&#39;[::ffff:127.0.0.1]&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">remote</span><span class="o">.</span><span class="n">is_multicast</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>The actual response message, the body, or the payload of the response, is
+accessible in the payload property, and is always a bytestring:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">payload</span>
+<span class="go">b&#39;Three rings for the elven kings [ abbreviated ]&#39;</span>
+</pre></div>
+</div>
+<p>aiocoap does not yet provide utilities to parse the message according to its
+content format (which would be accessed as <code class="docutils literal"><span class="pre">response.opt.content_format</span></code> and
+is numeric in CoAP).</p>
+<div class="topic">
+<p class="topic-title first">More asynchronous fun</p>
+<blockquote>
+<div><p>The other examples don&#8217;t show simultaneous requests in flight, so let&#8217;s
+have one with parallel requests:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">responses</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>        <span class="n">protocol</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">Message</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">GET</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="n">u</span><span class="p">))</span><span class="o">.</span><span class="n">response</span>
+<span class="gp">... </span>        <span class="k">for</span> <span class="n">u</span>
+<span class="gp">... </span>        <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;coap://localhost/time&quot;</span><span class="p">,</span> <span class="s2">&quot;coap://vs0.inf.ethz.ch/obs&quot;</span><span class="p">,</span> <span class="s2">&quot;coap://coap.me/test&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="p">]</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">as_completed</span><span class="p">(</span><span class="n">responses</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">f</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Response from </span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">get_request_uri</span><span class="p">(),</span> <span class="n">response</span><span class="o">.</span><span class="n">payload</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+<span class="go">Response from coap://localhost/time: b&#39;2016-12-07 18:16&#39;</span>
+<span class="go">Response from coap://vs0.inf.ethz.ch/obs: b&#39;18:16:11&#39;</span>
+<span class="go">Response from coap://coap.me/test: b&#39;welcome to the ETSI plugtest! last change: 2016-12-06 16:02:33 UTC&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>This also shows that the response messages do keep some information of their
+original request (in particular, the request URI) with them to ease further
+parsing.</p>
+</div>
+<p>This is currently the end of the guided tour; see the <code class="xref py py-mod docutils literal"><span class="pre">aiocoap.resource</span></code>
+documentation for the server side until the tour covers that too.is complete.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Guided Tour through aiocoap</a><ul>
+<li><a class="reference internal" href="#first-some-tools">First, some tools</a></li>
+<li><a class="reference internal" href="#a-request">A request</a></li>
+<li><a class="reference internal" href="#asynchronous-operation">Asynchronous operation</a></li>
+<li><a class="reference internal" href="#the-response">The response</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/doc/guidedtour.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Christian Amsuss.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../_sources/doc/guidedtour.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
