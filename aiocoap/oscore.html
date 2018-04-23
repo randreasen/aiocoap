@@ -1,0 +1,726 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<meta charset="UTF-8">
+<html>
+<head>
+<title>/home/ricardo/aiocoap/aiocoap/oscore.py</title>
+<style>
+.highlight .hll { background-color: #ffffcc }
+.highlight .c { color: #408080; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #FF0000 } /* Error */
+.highlight .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight .o { color: #666666 } /* Operator */
+.highlight .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #408080; font-style: italic } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .gr { color: #FF0000 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888888 } /* Generic.Output */
+.highlight .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #0044DD } /* Generic.Traceback */
+.highlight .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #B00040 } /* Keyword.Type */
+.highlight .m { color: #666666 } /* Literal.Number */
+.highlight .s { color: #BA2121 } /* Literal.String */
+.highlight .na { color: #7D9029 } /* Name.Attribute */
+.highlight .nb { color: #008000 } /* Name.Builtin */
+.highlight .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight .no { color: #880000 } /* Name.Constant */
+.highlight .nd { color: #AA22FF } /* Name.Decorator */
+.highlight .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.highlight .nf { color: #0000FF } /* Name.Function */
+.highlight .nl { color: #A0A000 } /* Name.Label */
+.highlight .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #19177C } /* Name.Variable */
+.highlight .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight .mb { color: #666666 } /* Literal.Number.Bin */
+.highlight .mf { color: #666666 } /* Literal.Number.Float */
+.highlight .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.highlight .sx { color: #008000 } /* Literal.String.Other */
+.highlight .sr { color: #BB6688 } /* Literal.String.Regex */
+.highlight .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight .vc { color: #19177C } /* Name.Variable.Class */
+.highlight .vg { color: #19177C } /* Name.Variable.Global */
+.highlight .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight .il { color: #666666 } /* Literal.Number.Integer.Long */
+.highlight * { font-family: monospace; }
+.highlight { font-size: 90%; }
+.highlight { line-height: normal; }
+.highlight .err { border: none !important }
+</style>
+</head>
+<body>
+<div class="highlight"><pre><span class="lineno">  1 </span><span class="c1">#</span>
+<span class="lineno">  2 </span><span class="c1"># Copyright (c) 2012-2014 Maciej Wasilak &lt;http://sixpinetrees.blogspot.com/&gt;,</span>
+<span class="lineno">  3 </span><span class="c1">#               2013-2014 Christian Amsüss &lt;c.amsuess@energyharvesting.at&gt;</span>
+<span class="lineno">  4 </span><span class="c1">#</span>
+<span class="lineno">  5 </span><span class="c1"># aiocoap is free software, this file is published under the MIT license as</span>
+<span class="lineno">  6 </span><span class="c1"># described in the accompanying LICENSE file.</span>
+<span class="lineno">  7 </span>
+<span class="lineno">  8 </span><span class="sd">&quot;&quot;&quot;This module contains the tools to send OSCORE secured messages.</span>
+<span class="lineno">  9 </span>
+<span class="lineno"> 10 </span><span class="sd">(Work in progress.)&quot;&quot;&quot;</span>
+<span class="lineno"> 11 </span>
+<span class="lineno"> 12 </span><span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="lineno"> 13 </span><span class="kn">import</span> <span class="nn">json</span>
+<span class="lineno"> 14 </span><span class="kn">import</span> <span class="nn">binascii</span>
+<span class="lineno"> 15 </span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">os.path</span>
+<span class="lineno"> 16 </span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="lineno"> 17 </span><span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="lineno"> 18 </span><span class="kn">import</span> <span class="nn">abc</span>
+<span class="lineno"> 19 </span>
+<span class="lineno"> 20 </span><span class="kn">from</span> <span class="nn">aiocoap.message</span> <span class="kn">import</span> <span class="n">Message</span>
+<span class="lineno"> 21 </span><span class="kn">from</span> <span class="nn">aiocoap.util</span> <span class="kn">import</span> <span class="n">secrets</span>
+<span class="lineno"> 22 </span><span class="kn">from</span> <span class="nn">aiocoap.numbers</span> <span class="kn">import</span> <span class="n">POST</span><span class="p">,</span> <span class="n">FETCH</span><span class="p">,</span> <span class="n">CHANGED</span>
+<span class="lineno"> 23 </span>
+<span class="lineno"> 24 </span><span class="kn">from</span> <span class="nn">cryptography.hazmat.primitives.ciphers.aead</span> <span class="kn">import</span> <span class="n">AESCCM</span>
+<span class="lineno"> 25 </span><span class="kn">import</span> <span class="nn">cryptography.exceptions</span>
+<span class="lineno"> 26 </span>
+<span class="lineno"> 27 </span><span class="kn">import</span> <span class="nn">hkdf</span>
+<span class="lineno"> 28 </span><span class="kn">import</span> <span class="nn">cbor</span>
+<span class="lineno"> 29 </span>
+<span class="lineno"> 30 </span><span class="n">USE_COMPRESSION</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="lineno"> 31 </span><span class="n">MAX_SEQNO</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">40</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="lineno"> 32 </span>
+<span class="lineno"> 33 </span><span class="k">class</span> <span class="nc">NotAProtectedMessage</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="lineno"> 34 </span>    <span class="sd">&quot;&quot;&quot;Raised when verification is attempted on a non-OSCORE message&quot;&quot;&quot;</span>
+<span class="lineno"> 35 </span>
+<span class="lineno"> 36 </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">plain_message</span><span class="p">):</span>
+<span class="lineno"> 37 </span>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="lineno"> 38 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">plain_message</span> <span class="o">=</span> <span class="n">plain_message</span>
+<span class="lineno"> 39 </span>
+<span class="lineno"> 40 </span><span class="k">class</span> <span class="nc">ProtectionInvalid</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="lineno"> 41 </span>    <span class="sd">&quot;&quot;&quot;Raised when verification of an OSCORE message fails&quot;&quot;&quot;</span>
+<span class="lineno"> 42 </span>
+<span class="lineno"> 43 </span><span class="k">class</span> <span class="nc">DecodeError</span><span class="p">(</span><span class="n">ProtectionInvalid</span><span class="p">):</span>
+<span class="lineno"> 44 </span>    <span class="sd">&quot;&quot;&quot;Raised when verification of an OSCORE message fails because CBOR or compressed data were erroneous&quot;&quot;&quot;</span>
+<span class="lineno"> 45 </span>
+<span class="lineno"> 46 </span><span class="k">class</span> <span class="nc">ReplayError</span><span class="p">(</span><span class="n">ProtectionInvalid</span><span class="p">):</span>
+<span class="lineno"> 47 </span>    <span class="sd">&quot;&quot;&quot;Raised when verification of an OSCORE message fails because the sequence numbers was already used&quot;&quot;&quot;</span>
+<span class="lineno"> 48 </span>
+<span class="lineno"> 49 </span><span class="k">def</span> <span class="nf">_xor_bytes</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="lineno"> 50 </span>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="lineno"> 51 </span>    <span class="c1"># FIXME is this an efficient thing to do, or should we store everything</span>
+<span class="lineno"> 52 </span>    <span class="c1"># that possibly needs xor&#39;ing as long integers with an associated length?</span>
+<span class="lineno"> 53 </span>    <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">_a</span> <span class="o">^</span> <span class="n">_b</span> <span class="k">for</span> <span class="p">(</span><span class="n">_a</span><span class="p">,</span> <span class="n">_b</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+<span class="lineno"> 54 </span>
+<span class="lineno"> 55 </span><span class="k">class</span> <span class="nc">Algorithm</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="lineno"> 56 </span>    <span class="nd">@abc.abstractmethod</span>
+<span class="lineno"> 57 </span>    <span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">,</span> <span class="n">aad</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">iv</span><span class="p">):</span>
+<span class="lineno"> 58 </span>        <span class="sd">&quot;&quot;&quot;Return (ciphertext, tag) for given input data&quot;&quot;&quot;</span>
+<span class="lineno"> 59 </span>
+<span class="lineno"> 60 </span>    <span class="nd">@abc.abstractmethod</span>
+<span class="lineno"> 61 </span>    <span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">aad</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">iv</span><span class="p">):</span>
+<span class="lineno"> 62 </span>        <span class="sd">&quot;&quot;&quot;Reverse encryption. Must raise ProtectionInvalid on any error</span>
+<span class="lineno"> 63 </span><span class="sd">        stemming from untrusted data.&quot;&quot;&quot;</span>
+<span class="lineno"> 64 </span>
+<span class="lineno"> 65 </span><span class="k">class</span> <span class="nc">AES_CCM</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="lineno"> 66 </span>    <span class="sd">&quot;&quot;&quot;AES-CCM implemented using the Python cryptography library&quot;&quot;&quot;</span>
+<span class="lineno"> 67 </span>
+<span class="lineno"> 68 </span>    <span class="nd">@classmethod</span>
+<span class="lineno"> 69 </span>    <span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">,</span> <span class="n">aad</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">iv</span><span class="p">):</span>
+<span class="lineno"> 70 </span>        <span class="n">joint</span> <span class="o">=</span> <span class="n">AESCCM</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">tag_bytes</span><span class="p">)</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">iv</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">,</span> <span class="n">aad</span><span class="p">)</span>
+<span class="lineno"> 71 </span>        <span class="k">return</span> <span class="n">joint</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">plaintext</span><span class="p">)],</span> <span class="n">joint</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">plaintext</span><span class="p">):]</span>
+<span class="lineno"> 72 </span>
+<span class="lineno"> 73 </span>    <span class="nd">@classmethod</span>
+<span class="lineno"> 74 </span>    <span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">aad</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">iv</span><span class="p">):</span>
+<span class="lineno"> 75 </span>        <span class="k">try</span><span class="p">:</span>
+<span class="lineno"> 76 </span>            <span class="k">return</span> <span class="n">AESCCM</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">tag_bytes</span><span class="p">)</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">iv</span><span class="p">,</span> <span class="n">ciphertext</span> <span class="o">+</span> <span class="n">tag</span><span class="p">,</span> <span class="n">aad</span><span class="p">)</span>
+<span class="lineno"> 77 </span>        <span class="k">except</span> <span class="n">cryptography</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InvalidTag</span><span class="p">:</span>
+<span class="lineno"> 78 </span>            <span class="k">raise</span> <span class="n">ProtectionInvalid</span><span class="p">(</span><span class="s">&quot;Tag invalid&quot;</span><span class="p">)</span>
+<span class="lineno"> 79 </span>
+<span class="lineno"> 80 </span><span class="k">class</span> <span class="nc">AES_CCM_64_64_128</span><span class="p">(</span><span class="n">AES_CCM</span><span class="p">):</span>
+<span class="lineno"> 81 </span>    <span class="c1"># from RFC8152 and draft-ietf-core-object-security-0[012] 3.2.1</span>
+<span class="lineno"> 82 </span>    <span class="n">value</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="lineno"> 83 </span>    <span class="n">key_bytes</span> <span class="o">=</span> <span class="mi">16</span> <span class="c1"># 128 bit, the &#39;k&#39; column</span>
+<span class="lineno"> 84 </span>    <span class="n">iv_bytes</span> <span class="o">=</span> <span class="mi">7</span> <span class="c1"># 56 bit nonce. Implies the 64bit (8 bytes = 15 - 7) in the &#39;L&#39; column</span>
+<span class="lineno"> 85 </span>    <span class="n">tag_bytes</span> <span class="o">=</span> <span class="mi">8</span> <span class="c1"># 64 bit tag, the &#39;M&#39; column</span>
+<span class="lineno"> 86 </span>
+<span class="lineno"> 87 </span><span class="k">class</span> <span class="nc">AES_CCM_16_64_128</span><span class="p">(</span><span class="n">AES_CCM</span><span class="p">):</span>
+<span class="lineno"> 88 </span>    <span class="c1"># from RFC8152</span>
+<span class="lineno"> 89 </span>    <span class="n">value</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="lineno"> 90 </span>    <span class="n">key_bytes</span> <span class="o">=</span> <span class="mi">16</span> <span class="c1"># 128 bit, the &#39;k&#39; column</span>
+<span class="lineno"> 91 </span>    <span class="n">iv_bytes</span> <span class="o">=</span> <span class="mi">13</span> <span class="c1"># from L=16 column: 15 - L/8 = 13, and the description</span>
+<span class="lineno"> 92 </span>    <span class="n">tag_bytes</span> <span class="o">=</span> <span class="mi">8</span> <span class="c1"># 64 bit tag, the &#39;M&#39; column</span>
+<span class="lineno"> 93 </span>
+<span class="lineno"> 94 </span><span class="n">algorithms</span> <span class="o">=</span> <span class="p">{</span>
+<span class="lineno"> 95 </span>        <span class="s">&#39;AES-CCM-16-64-128&#39;</span><span class="p">:</span> <span class="n">AES_CCM_16_64_128</span><span class="p">(),</span>
+<span class="lineno"> 96 </span>        <span class="s">&#39;AES-CCM-64-64-128&#39;</span><span class="p">:</span> <span class="n">AES_CCM_64_64_128</span><span class="p">(),</span>
+<span class="lineno"> 97 </span>        <span class="p">}</span>
+<span class="lineno"> 98 </span>
+<span class="lineno"> 99 </span><span class="n">hashfunctions</span> <span class="o">=</span> <span class="p">{</span>
+<span class="lineno">100 </span>        <span class="s">&#39;sha256&#39;</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">,</span>
+<span class="lineno">101 </span>        <span class="p">}</span>
+<span class="lineno">102 </span>
+<span class="lineno">103 </span><span class="k">class</span> <span class="nc">SecurityContext</span><span class="p">:</span>
+<span class="lineno">104 </span>    <span class="c1"># FIXME: define an interface for that</span>
+<span class="lineno">105 </span>
+<span class="lineno">106 </span>    <span class="c1"># message processing</span>
+<span class="lineno">107 </span>
+<span class="lineno">108 </span>    <span class="k">def</span> <span class="nf">_extract_external_aad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">request_kid</span><span class="p">,</span> <span class="n">request_piv</span><span class="p">):</span>
+<span class="lineno">109 </span>        <span class="c1"># If any option were actually Class I, it would be something like</span>
+<span class="lineno">110 </span>        <span class="c1">#</span>
+<span class="lineno">111 </span>        <span class="c1"># class_i_options = Message(the_options).opt.encode()</span>
+<span class="lineno">112 </span>
+<span class="lineno">113 </span>        <span class="n">version</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="lineno">114 </span>        <span class="n">class_i_options</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
+<span class="lineno">115 </span>
+<span class="lineno">116 </span>        <span class="n">external_aad</span> <span class="o">=</span> <span class="p">[</span>
+<span class="lineno">117 </span>                <span class="n">version</span><span class="p">,</span>
+<span class="lineno">118 </span>                <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+<span class="lineno">119 </span>                <span class="n">request_kid</span><span class="p">,</span>
+<span class="lineno">120 </span>                <span class="n">request_piv</span><span class="p">,</span>
+<span class="lineno">121 </span>                <span class="n">class_i_options</span><span class="p">,</span>
+<span class="lineno">122 </span>                <span class="p">]</span>
+<span class="lineno">123 </span>
+<span class="lineno">124 </span>        <span class="n">external_aad</span> <span class="o">=</span> <span class="n">cbor</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">external_aad</span><span class="p">)</span>
+<span class="lineno">125 </span>
+<span class="lineno">126 </span>        <span class="k">return</span> <span class="n">external_aad</span>
+<span class="lineno">127 </span>
+<span class="lineno">128 </span>    <span class="k">def</span> <span class="nf">_split_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="lineno">129 </span>        <span class="sd">&quot;&quot;&quot;Given a protected message, return the outer message that contains</span>
+<span class="lineno">130 </span><span class="sd">        all Class I and Class U options (but without payload or Object-Security</span>
+<span class="lineno">131 </span><span class="sd">        option), and a proto-inner message that contains all Class E options.&quot;&quot;&quot;</span>
+<span class="lineno">132 </span>
+<span class="lineno">133 </span>        <span class="n">inner_message</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="lineno">134 </span>
+<span class="lineno">135 </span>        <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">is_request</span><span class="p">():</span>
+<span class="lineno">136 </span>            <span class="n">outer_uri</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">get_request_uri</span><span class="p">()</span>
+<span class="lineno">137 </span>
+<span class="lineno">138 </span>            <span class="k">if</span> <span class="n">outer_uri</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+<span class="lineno">139 </span>                <span class="n">outer_uri</span> <span class="o">=</span> <span class="n">outer_uri</span><span class="p">[:</span><span class="n">outer_uri</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="n">outer_uri</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="n">outer_uri</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+<span class="lineno">140 </span>
+<span class="lineno">141 </span>            <span class="n">inner_message</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+<span class="lineno">142 </span>                    <span class="c1"># explicitly passing the .uri so that it gets split up;</span>
+<span class="lineno">143 </span>                    <span class="c1"># FIXME make sure it always is, even in exotic schemes</span>
+<span class="lineno">144 </span>                    <span class="n">uri</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">get_request_uri</span><span class="p">(),</span>
+<span class="lineno">145 </span>                    <span class="n">uri_host</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<span class="lineno">146 </span>                    <span class="n">uri_port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<span class="lineno">147 </span>                    <span class="n">proxy_uri</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<span class="lineno">148 </span>                    <span class="n">proxy_scheme</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<span class="lineno">149 </span>                    <span class="p">)</span>
+<span class="lineno">150 </span>
+<span class="lineno">151 </span>            <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">observe</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">152 </span>                <span class="n">outer_code</span> <span class="o">=</span> <span class="n">POST</span>
+<span class="lineno">153 </span>            <span class="k">else</span><span class="p">:</span>
+<span class="lineno">154 </span>                <span class="n">outer_code</span> <span class="o">=</span> <span class="n">FETCH</span>
+<span class="lineno">155 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">156 </span>            <span class="n">outer_uri</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="lineno">157 </span>
+<span class="lineno">158 </span>            <span class="n">inner_message</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="lineno">159 </span>
+<span class="lineno">160 </span>            <span class="n">outer_code</span> <span class="o">=</span> <span class="n">CHANGED</span>
+<span class="lineno">161 </span>
+<span class="lineno">162 </span>        <span class="n">outer_message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">outer_code</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="n">outer_uri</span><span class="p">,</span>
+<span class="lineno">163 </span>                <span class="n">observe</span><span class="o">=</span><span class="bp">None</span> <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">is_response</span><span class="p">()</span> <span class="k">else</span> <span class="n">message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">observe</span><span class="p">,</span>
+<span class="lineno">164 </span>                <span class="n">max_age</span><span class="o">=</span><span class="mi">0</span> <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">is_response</span><span class="p">()</span> <span class="ow">and</span> <span class="n">message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">observe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">None</span><span class="p">,</span>
+<span class="lineno">165 </span>                <span class="p">)</span>
+<span class="lineno">166 </span>
+<span class="lineno">167 </span>        <span class="k">return</span> <span class="n">outer_message</span><span class="p">,</span> <span class="n">inner_message</span>
+<span class="lineno">168 </span>
+<span class="lineno">169 </span>    <span class="k">def</span> <span class="nf">_build_new_nonce</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="lineno">170 </span>        <span class="sd">&quot;&quot;&quot;This implements generation of a new nonce, assembled as per Figure 5</span>
+<span class="lineno">171 </span><span class="sd">        of draft-ietf-core-object-security-06. Returns the shortened partial IV</span>
+<span class="lineno">172 </span><span class="sd">        as well.&quot;&quot;&quot;</span>
+<span class="lineno">173 </span>        <span class="n">seqno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_sequence_number</span><span class="p">()</span>
+<span class="lineno">174 </span>
+<span class="lineno">175 </span>        <span class="n">partial_iv</span> <span class="o">=</span> <span class="n">seqno</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;big&#39;</span><span class="p">)</span>
+<span class="lineno">176 </span>
+<span class="lineno">177 </span>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_construct_nonce</span><span class="p">(</span><span class="n">partial_iv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span><span class="p">),</span> <span class="n">partial_iv</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\0</span><span class="s">&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\0</span><span class="s">&#39;</span><span class="p">)</span>
+<span class="lineno">178 </span>
+<span class="lineno">179 </span>    <span class="k">def</span> <span class="nf">_construct_nonce</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partial_iv_short</span><span class="p">,</span> <span class="n">piv_generator_id</span><span class="p">):</span>
+<span class="lineno">180 </span>        <span class="n">partial_iv</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;</span><span class="se">\0</span><span class="s">&quot;</span> <span class="o">*</span> <span class="p">(</span><span class="mi">5</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">partial_iv_short</span><span class="p">))</span> <span class="o">+</span> <span class="n">partial_iv_short</span>
+<span class="lineno">181 </span>
+<span class="lineno">182 </span>        <span class="n">s</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">piv_generator_id</span><span class="p">)])</span>
+<span class="lineno">183 </span>        <span class="n">pad</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\0</span><span class="s">&#39;</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">iv_bytes</span> <span class="o">-</span> <span class="mi">6</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">piv_generator_id</span><span class="p">))</span>
+<span class="lineno">184 </span>
+<span class="lineno">185 </span>        <span class="n">components</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> \
+<span class="lineno">186 </span>                <span class="n">pad</span> <span class="o">+</span> \
+<span class="lineno">187 </span>                <span class="n">piv_generator_id</span> <span class="o">+</span> \
+<span class="lineno">188 </span>                <span class="n">partial_iv</span>
+<span class="lineno">189 </span>
+<span class="lineno">190 </span>        <span class="n">nonce</span> <span class="o">=</span> <span class="n">_xor_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">common_iv</span><span class="p">,</span> <span class="n">components</span><span class="p">)</span>
+<span class="lineno">191 </span>
+<span class="lineno">192 </span>        <span class="k">return</span> <span class="n">nonce</span>
+<span class="lineno">193 </span>
+<span class="lineno">194 </span>    <span class="nd">@staticmethod</span>
+<span class="lineno">195 </span>    <span class="k">def</span> <span class="nf">_compress</span><span class="p">(</span><span class="n">unprotected</span><span class="p">,</span> <span class="n">protected</span><span class="p">):</span>
+<span class="lineno">196 </span>        <span class="sd">&quot;&quot;&quot;Pack the untagged COSE_Encrypt0 object described by the arguments</span>
+<span class="lineno">197 </span><span class="sd">        into two bytestrings suitable for the Object-Security option and the</span>
+<span class="lineno">198 </span><span class="sd">        message body&quot;&quot;&quot;</span>
+<span class="lineno">199 </span>
+<span class="lineno">200 </span>        <span class="k">if</span> <span class="n">protected</span><span class="p">:</span>
+<span class="lineno">201 </span>            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;Protection produced a message that has uncompressable fields.&quot;</span><span class="p">)</span>
+<span class="lineno">202 </span>
+<span class="lineno">203 </span>        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">unprotected</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">}:</span>
+<span class="lineno">204 </span>            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;Protection produced a message that has uncompressable fields.&quot;</span><span class="p">)</span>
+<span class="lineno">205 </span>
+<span class="lineno">206 </span>        <span class="k">if</span> <span class="mi">6</span> <span class="ow">in</span> <span class="n">unprotected</span><span class="p">:</span>
+<span class="lineno">207 </span>            <span class="n">piv</span> <span class="o">=</span> <span class="n">unprotected</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="ow">or</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
+<span class="lineno">208 </span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">piv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mb">0b111</span><span class="p">:</span>
+<span class="lineno">209 </span>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Can&#39;t encode overly long partial IV&quot;</span><span class="p">)</span>
+<span class="lineno">210 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">211 </span>            <span class="n">piv</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
+<span class="lineno">212 </span>
+<span class="lineno">213 </span>        <span class="n">firstbyte</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">piv</span><span class="p">)</span>
+<span class="lineno">214 </span>        <span class="k">if</span> <span class="mi">4</span> <span class="ow">in</span> <span class="n">unprotected</span><span class="p">:</span>
+<span class="lineno">215 </span>            <span class="n">firstbyte</span> <span class="o">|=</span> <span class="mb">0b1000</span>
+<span class="lineno">216 </span>            <span class="n">kid_data</span> <span class="o">=</span> <span class="n">unprotected</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="lineno">217 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">218 </span>            <span class="n">kid_data</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
+<span class="lineno">219 </span>
+<span class="lineno">220 </span>        <span class="k">if</span> <span class="n">firstbyte</span><span class="p">:</span>
+<span class="lineno">221 </span>            <span class="k">return</span> <span class="nb">bytes</span><span class="p">([</span><span class="n">firstbyte</span><span class="p">])</span> <span class="o">+</span> <span class="n">piv</span> <span class="o">+</span> <span class="n">kid_data</span>
+<span class="lineno">222 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">223 </span>            <span class="k">return</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
+<span class="lineno">224 </span>
+<span class="lineno">225 </span>    <span class="k">def</span> <span class="nf">protect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">request_data</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">can_reuse_partiv</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<span class="lineno">226 </span>        <span class="k">assert</span> <span class="p">(</span><span class="n">request_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">message</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">is_request</span><span class="p">()</span>
+<span class="lineno">227 </span>        <span class="k">if</span> <span class="n">request_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">228 </span>            <span class="n">request_kid</span><span class="p">,</span> <span class="n">request_partiv</span><span class="p">,</span> <span class="n">request_nonce</span> <span class="o">=</span> <span class="n">request_data</span>
+<span class="lineno">229 </span>
+<span class="lineno">230 </span>        <span class="n">outer_message</span><span class="p">,</span> <span class="n">inner_message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="lineno">231 </span>
+<span class="lineno">232 </span>        <span class="k">if</span> <span class="n">request_data</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">can_reuse_partiv</span> <span class="ow">or</span> <span class="n">message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">observe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">233 </span>            <span class="n">nonce</span><span class="p">,</span> <span class="n">partial_iv_short</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_new_nonce</span><span class="p">()</span>
+<span class="lineno">234 </span>
+<span class="lineno">235 </span>            <span class="n">unprotected</span> <span class="o">=</span> <span class="p">{</span>
+<span class="lineno">236 </span>                    <span class="mi">6</span><span class="p">:</span> <span class="n">partial_iv_short</span><span class="p">,</span>
+<span class="lineno">237 </span>                    <span class="p">}</span>
+<span class="lineno">238 </span>            <span class="k">if</span> <span class="n">request_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">239 </span>                <span class="c1"># this is usually the case; the exception is observe</span>
+<span class="lineno">240 </span>                <span class="n">unprotected</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span>
+<span class="lineno">241 </span>
+<span class="lineno">242 </span>                <span class="n">request_kid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span>
+<span class="lineno">243 </span>                <span class="n">request_partiv</span> <span class="o">=</span> <span class="n">partial_iv_short</span>
+<span class="lineno">244 </span>                <span class="n">request_nonce</span> <span class="o">=</span> <span class="n">nonce</span>
+<span class="lineno">245 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">246 </span>            <span class="n">nonce</span> <span class="o">=</span> <span class="n">request_nonce</span>
+<span class="lineno">247 </span>            <span class="n">unprotected</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="lineno">248 </span>
+<span class="lineno">249 </span>        <span class="n">protected</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="lineno">250 </span>
+<span class="lineno">251 </span>        <span class="k">assert</span> <span class="n">protected</span> <span class="o">==</span> <span class="p">{}</span>
+<span class="lineno">252 </span>        <span class="n">protected_serialized</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;&#39;</span> <span class="c1"># were it into an empty dict, it&#39;d be the cbor dump</span>
+<span class="lineno">253 </span>        <span class="n">enc_structure</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Encrypt0&#39;</span><span class="p">,</span> <span class="n">protected_serialized</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_external_aad</span><span class="p">(</span><span class="n">outer_message</span><span class="p">,</span> <span class="n">request_kid</span><span class="p">,</span> <span class="n">request_partiv</span><span class="p">)]</span>
+<span class="lineno">254 </span>        <span class="n">aad</span> <span class="o">=</span> <span class="n">cbor</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">enc_structure</span><span class="p">)</span>
+<span class="lineno">255 </span>        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sender_key</span>
+<span class="lineno">256 </span>
+<span class="lineno">257 </span>        <span class="n">plaintext</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">([</span><span class="n">inner_message</span><span class="o">.</span><span class="n">code</span><span class="p">])</span> <span class="o">+</span> <span class="n">inner_message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+<span class="lineno">258 </span>        <span class="k">if</span> <span class="n">inner_message</span><span class="o">.</span><span class="n">payload</span><span class="p">:</span>
+<span class="lineno">259 </span>            <span class="n">plaintext</span> <span class="o">+=</span> <span class="nb">bytes</span><span class="p">([</span><span class="mh">0xFF</span><span class="p">])</span>
+<span class="lineno">260 </span>            <span class="n">plaintext</span> <span class="o">+=</span> <span class="n">inner_message</span><span class="o">.</span><span class="n">payload</span>
+<span class="lineno">261 </span>
+<span class="lineno">262 </span>
+<span class="lineno">263 </span>        <span class="n">ciphertext</span><span class="p">,</span> <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">plaintext</span><span class="p">,</span> <span class="n">aad</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">nonce</span><span class="p">)</span>
+<span class="lineno">264 </span>
+<span class="lineno">265 </span>        <span class="n">option_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compress</span><span class="p">(</span><span class="n">unprotected</span><span class="p">,</span> <span class="n">protected</span><span class="p">)</span>
+<span class="lineno">266 </span>
+<span class="lineno">267 </span>        <span class="n">outer_message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">object_security</span> <span class="o">=</span> <span class="n">option_data</span>
+<span class="lineno">268 </span>        <span class="n">outer_message</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">ciphertext</span> <span class="o">+</span> <span class="n">tag</span>
+<span class="lineno">269 </span>
+<span class="lineno">270 </span>        <span class="c1"># FIXME go through options section</span>
+<span class="lineno">271 </span>
+<span class="lineno">272 </span>        <span class="c1"># the request_data in the second argument should be discarded by the</span>
+<span class="lineno">273 </span>        <span class="c1"># caller when protecting a response -- is that reason enough for an</span>
+<span class="lineno">274 </span>        <span class="c1"># `if` and returning None?</span>
+<span class="lineno">275 </span>        <span class="k">return</span> <span class="n">outer_message</span><span class="p">,</span> <span class="p">(</span><span class="n">request_kid</span><span class="p">,</span> <span class="n">request_partiv</span><span class="p">,</span> <span class="n">request_nonce</span><span class="p">)</span>
+<span class="lineno">276 </span>
+<span class="lineno">277 </span>    <span class="k">def</span> <span class="nf">unprotect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protected_message</span><span class="p">,</span> <span class="n">request_data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="lineno">278 </span>        <span class="k">assert</span> <span class="p">(</span><span class="n">request_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">protected_message</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">is_response</span><span class="p">()</span>
+<span class="lineno">279 </span>        <span class="k">if</span> <span class="n">request_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">280 </span>            <span class="n">request_kid</span><span class="p">,</span> <span class="n">request_partiv</span><span class="p">,</span> <span class="n">request_nonce</span> <span class="o">=</span> <span class="n">request_data</span>
+<span class="lineno">281 </span>
+<span class="lineno">282 </span>        <span class="n">protected_serialized</span><span class="p">,</span> <span class="n">protected</span><span class="p">,</span> <span class="n">unprotected</span><span class="p">,</span> <span class="n">ciphertext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_encrypted0</span><span class="p">(</span><span class="n">protected_message</span><span class="p">)</span>
+<span class="lineno">283 </span>
+<span class="lineno">284 </span>        <span class="k">if</span> <span class="n">protected</span><span class="p">:</span>
+<span class="lineno">285 </span>            <span class="k">raise</span> <span class="n">ProtectionInvalid</span><span class="p">(</span><span class="s">&quot;The protected field is not empty&quot;</span><span class="p">)</span>
+<span class="lineno">286 </span>
+<span class="lineno">287 </span>        <span class="c1"># FIXME check for duplicate keys in protected</span>
+<span class="lineno">288 </span>
+<span class="lineno">289 </span>        <span class="k">if</span> <span class="n">unprotected</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span><span class="p">:</span>
+<span class="lineno">290 </span>            <span class="c1"># for most cases, this is caught by the session ID dispatch, but in</span>
+<span class="lineno">291 </span>            <span class="c1"># responses (where explicit sender IDs are atypical), this is a</span>
+<span class="lineno">292 </span>            <span class="c1"># valid check</span>
+<span class="lineno">293 </span>            <span class="k">raise</span> <span class="n">ProtectionInvalid</span><span class="p">(</span><span class="s">&quot;Sender ID does not match&quot;</span><span class="p">)</span>
+<span class="lineno">294 </span>
+<span class="lineno">295 </span>        <span class="k">if</span> <span class="mi">6</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unprotected</span><span class="p">:</span>
+<span class="lineno">296 </span>            <span class="k">if</span> <span class="n">request_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">297 </span>                <span class="k">raise</span> <span class="n">ProtectonInvalid</span><span class="p">(</span><span class="s">&quot;No sequence number provided in request&quot;</span><span class="p">)</span>
+<span class="lineno">298 </span>
+<span class="lineno">299 </span>            <span class="n">nonce</span> <span class="o">=</span> <span class="n">request_nonce</span>
+<span class="lineno">300 </span>            <span class="n">seqno</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1"># sentinel for not striking out anyting</span>
+<span class="lineno">301 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">302 </span>            <span class="n">partial_iv_short</span> <span class="o">=</span> <span class="n">unprotected</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+<span class="lineno">303 </span>
+<span class="lineno">304 </span>            <span class="n">seqno</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">partial_iv_short</span><span class="p">,</span> <span class="s">&#39;big&#39;</span><span class="p">)</span>
+<span class="lineno">305 </span>
+<span class="lineno">306 </span>            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipient_replay_window</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">seqno</span><span class="p">):</span>
+<span class="lineno">307 </span>                <span class="k">raise</span> <span class="n">ReplayError</span><span class="p">(</span><span class="s">&quot;Sequence number was re-used&quot;</span><span class="p">)</span>
+<span class="lineno">308 </span>
+<span class="lineno">309 </span>            <span class="n">nonce</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_nonce</span><span class="p">(</span><span class="n">partial_iv_short</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span><span class="p">)</span>
+<span class="lineno">310 </span>
+<span class="lineno">311 </span>            <span class="k">if</span> <span class="n">request_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="c1"># ie. we&#39;re unprotecting a request</span>
+<span class="lineno">312 </span>                <span class="n">request_partiv</span> <span class="o">=</span> <span class="n">partial_iv_short</span>
+<span class="lineno">313 </span>                <span class="n">request_kid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span>
+<span class="lineno">314 </span>                <span class="n">request_nonce</span> <span class="o">=</span> <span class="n">nonce</span>
+<span class="lineno">315 </span>
+<span class="lineno">316 </span>        <span class="c1"># FIXME is it an error for additional data to be present in unprotected?</span>
+<span class="lineno">317 </span>
+<span class="lineno">318 </span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ciphertext</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">tag_bytes</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># +1 assures access to plaintext[0]</span>
+<span class="lineno">319 </span>            <span class="k">raise</span> <span class="n">ProtectionInvalid</span><span class="p">(</span><span class="s">&quot;Ciphertext too short&quot;</span><span class="p">)</span>
+<span class="lineno">320 </span>
+<span class="lineno">321 </span>        <span class="n">tag</span> <span class="o">=</span> <span class="n">ciphertext</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">tag_bytes</span><span class="p">:]</span>
+<span class="lineno">322 </span>        <span class="n">ciphertext</span> <span class="o">=</span> <span class="n">ciphertext</span><span class="p">[:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">tag_bytes</span><span class="p">]</span>
+<span class="lineno">323 </span>
+<span class="lineno">324 </span>        <span class="n">enc_structure</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Encrypt0&#39;</span><span class="p">,</span> <span class="n">protected_serialized</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_external_aad</span><span class="p">(</span><span class="n">protected_message</span><span class="p">,</span> <span class="n">request_kid</span><span class="p">,</span> <span class="n">request_partiv</span><span class="p">)]</span>
+<span class="lineno">325 </span>        <span class="n">aad</span> <span class="o">=</span> <span class="n">cbor</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">enc_structure</span><span class="p">)</span>
+<span class="lineno">326 </span>
+<span class="lineno">327 </span>        <span class="n">plaintext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">ciphertext</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">aad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipient_key</span><span class="p">,</span> <span class="n">nonce</span><span class="p">)</span>
+<span class="lineno">328 </span>
+<span class="lineno">329 </span>        <span class="k">if</span> <span class="n">seqno</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">330 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">recipient_replay_window</span><span class="o">.</span><span class="n">strike_out</span><span class="p">(</span><span class="n">seqno</span><span class="p">)</span>
+<span class="lineno">331 </span>
+<span class="lineno">332 </span>        <span class="c1"># FIXME add options from unprotected</span>
+<span class="lineno">333 </span>
+<span class="lineno">334 </span>        <span class="n">unprotected_message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">plaintext</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="lineno">335 </span>        <span class="n">unprotected_message</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">unprotected_message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">plaintext</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+<span class="lineno">336 </span>
+<span class="lineno">337 </span>        <span class="k">if</span> <span class="n">unprotected_message</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">is_request</span><span class="p">():</span>
+<span class="lineno">338 </span>            <span class="n">unprotected_message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">observe</span> <span class="o">=</span> <span class="n">protected_message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">observe</span>
+<span class="lineno">339 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">340 </span>            <span class="k">if</span> <span class="n">protected_message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">observe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">341 </span>                <span class="n">unprotected_message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">observe</span> <span class="o">=</span> <span class="n">seqno</span>
+<span class="lineno">342 </span>
+<span class="lineno">343 </span>        <span class="k">return</span> <span class="n">unprotected_message</span><span class="p">,</span> <span class="p">(</span><span class="n">request_kid</span><span class="p">,</span> <span class="n">request_partiv</span><span class="p">,</span> <span class="n">request_nonce</span><span class="p">)</span>
+<span class="lineno">344 </span>
+<span class="lineno">345 </span>    <span class="nd">@staticmethod</span>
+<span class="lineno">346 </span>    <span class="k">def</span> <span class="nf">_uncompress</span><span class="p">(</span><span class="n">option_data</span><span class="p">):</span>
+<span class="lineno">347 </span>        <span class="k">if</span> <span class="n">option_data</span> <span class="o">==</span> <span class="n">b</span><span class="s">&quot;&quot;</span><span class="p">:</span>
+<span class="lineno">348 </span>            <span class="n">firstbyte</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="lineno">349 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">350 </span>            <span class="n">firstbyte</span> <span class="o">=</span> <span class="n">option_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="lineno">351 </span>            <span class="n">tail</span> <span class="o">=</span> <span class="n">option_data</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+<span class="lineno">352 </span>
+<span class="lineno">353 </span>        <span class="n">unprotected</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="lineno">354 </span>
+<span class="lineno">355 </span>        <span class="k">if</span> <span class="n">firstbyte</span> <span class="o">&amp;</span> <span class="mb">0b11100000</span><span class="p">:</span>
+<span class="lineno">356 </span>            <span class="k">raise</span> <span class="n">DecodeError</span><span class="p">(</span><span class="s">&quot;Protected data uses reserved fields&quot;</span><span class="p">)</span>
+<span class="lineno">357 </span>
+<span class="lineno">358 </span>        <span class="n">pivsz</span> <span class="o">=</span> <span class="n">firstbyte</span> <span class="o">&amp;</span> <span class="mb">0b111</span>
+<span class="lineno">359 </span>        <span class="k">if</span> <span class="n">pivsz</span><span class="p">:</span>
+<span class="lineno">360 </span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">pivsz</span><span class="p">:</span>
+<span class="lineno">361 </span>                <span class="k">raise</span> <span class="n">DecodeError</span><span class="p">(</span><span class="s">&quot;Partial IV announced but not present&quot;</span><span class="p">)</span>
+<span class="lineno">362 </span>            <span class="n">unprotected</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">tail</span><span class="p">[:</span><span class="n">pivsz</span><span class="p">]</span>
+<span class="lineno">363 </span>            <span class="n">tail</span> <span class="o">=</span> <span class="n">tail</span><span class="p">[</span><span class="n">pivsz</span><span class="p">:]</span>
+<span class="lineno">364 </span>
+<span class="lineno">365 </span>        <span class="k">if</span> <span class="n">firstbyte</span> <span class="o">&amp;</span> <span class="mb">0b00010000</span><span class="p">:</span>
+<span class="lineno">366 </span>            <span class="c1"># context hint</span>
+<span class="lineno">367 </span>            <span class="n">s</span> <span class="o">=</span> <span class="n">tail</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="lineno">368 </span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tail</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">s</span><span class="p">:</span>
+<span class="lineno">369 </span>                <span class="k">raise</span> <span class="n">DecodeError</span><span class="p">(</span><span class="s">&quot;Context hint announced but not present&quot;</span><span class="p">)</span>
+<span class="lineno">370 </span>            <span class="n">kidctx</span> <span class="o">=</span> <span class="s">&#39;FIXME&#39;</span> <span class="c1"># number to be assigned</span>
+<span class="lineno">371 </span>            <span class="n">unprotected</span><span class="p">[</span><span class="n">kidctx</span><span class="p">]</span> <span class="o">=</span> <span class="n">tail</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+<span class="lineno">372 </span>            <span class="n">tail</span> <span class="o">=</span> <span class="n">tail</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+<span class="lineno">373 </span>
+<span class="lineno">374 </span>        <span class="k">if</span> <span class="n">firstbyte</span> <span class="o">&amp;</span> <span class="mb">0b00001000</span><span class="p">:</span>
+<span class="lineno">375 </span>            <span class="n">kid</span> <span class="o">=</span> <span class="n">tail</span>
+<span class="lineno">376 </span>            <span class="n">unprotected</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">tail</span>
+<span class="lineno">377 </span>
+<span class="lineno">378 </span>        <span class="k">return</span> <span class="n">b</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="p">{},</span> <span class="n">unprotected</span>
+<span class="lineno">379 </span>
+<span class="lineno">380 </span>    <span class="nd">@classmethod</span>
+<span class="lineno">381 </span>    <span class="k">def</span> <span class="nf">_extract_encrypted0</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="lineno">382 </span>        <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">object_security</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+<span class="lineno">383 </span>            <span class="k">raise</span> <span class="n">NotAProtectedMessage</span><span class="p">(</span><span class="s">&quot;No Object-Security option present&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+<span class="lineno">384 </span>
+<span class="lineno">385 </span>        <span class="n">protected_serialized</span><span class="p">,</span> <span class="n">protected</span><span class="p">,</span> <span class="n">unprotected</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_uncompress</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">object_security</span><span class="p">)</span>
+<span class="lineno">386 </span>        <span class="k">return</span> <span class="n">protected_serialized</span><span class="p">,</span> <span class="n">protected</span><span class="p">,</span> <span class="n">unprotected</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="n">payload</span>
+<span class="lineno">387 </span>
+<span class="lineno">388 </span>    <span class="c1"># sequence number handling</span>
+<span class="lineno">389 </span>
+<span class="lineno">390 </span>    <span class="k">def</span> <span class="nf">new_sequence_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="lineno">391 </span>        <span class="n">retval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sender_sequence_number</span>
+<span class="lineno">392 </span>        <span class="k">if</span> <span class="n">retval</span> <span class="o">&gt;=</span> <span class="n">MAX_SEQNO</span><span class="p">:</span>
+<span class="lineno">393 </span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Sequence number too large, context is exhausted.&quot;</span><span class="p">)</span>
+<span class="lineno">394 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">sender_sequence_number</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="lineno">395 </span>        <span class="c1"># FIXME maybe _store now?</span>
+<span class="lineno">396 </span>        <span class="k">return</span> <span class="n">retval</span>
+<span class="lineno">397 </span>
+<span class="lineno">398 </span><span class="k">class</span> <span class="nc">ReplayWindow</span><span class="p">:</span>
+<span class="lineno">399 </span>    <span class="c1"># FIXME: interface, abc</span>
+<span class="lineno">400 </span>    <span class="k">pass</span>
+<span class="lineno">401 </span>
+<span class="lineno">402 </span><span class="c1"># FIXME: This is not a default DTLS replay window, and it should not be</span>
+<span class="lineno">403 </span><span class="c1"># expected that this can be used in any security context.</span>
+<span class="lineno">404 </span><span class="k">class</span> <span class="nc">SimpleReplayWindow</span><span class="p">(</span><span class="n">ReplayWindow</span><span class="p">):</span>
+<span class="lineno">405 </span>    <span class="sd">&quot;&quot;&quot;A ReplayWindow that keeps its seen sequence numbers in a sorted list;</span>
+<span class="lineno">406 </span><span class="sd">    all entries of the list and all numbers smaller than the first entry are</span>
+<span class="lineno">407 </span><span class="sd">    considered seen.</span>
+<span class="lineno">408 </span>
+<span class="lineno">409 </span><span class="sd">    This is not very efficient, but easy to understand and to serialize.</span>
+<span class="lineno">410 </span>
+<span class="lineno">411 </span><span class="sd">    &gt;&gt;&gt; w = SimpleReplayWindow()</span>
+<span class="lineno">412 </span><span class="sd">    &gt;&gt;&gt; w.strike_out(5)</span>
+<span class="lineno">413 </span><span class="sd">    &gt;&gt;&gt; w.is_valid(3)</span>
+<span class="lineno">414 </span><span class="sd">    True</span>
+<span class="lineno">415 </span><span class="sd">    &gt;&gt;&gt; w.is_valid(5)</span>
+<span class="lineno">416 </span><span class="sd">    False</span>
+<span class="lineno">417 </span><span class="sd">    &gt;&gt;&gt; w.strike_out(0)</span>
+<span class="lineno">418 </span><span class="sd">    &gt;&gt;&gt; print(w.seen)</span>
+<span class="lineno">419 </span><span class="sd">    [0, 5]</span>
+<span class="lineno">420 </span><span class="sd">    &gt;&gt;&gt; w.strike_out(1)</span>
+<span class="lineno">421 </span><span class="sd">    &gt;&gt;&gt; w.strike_out(2)</span>
+<span class="lineno">422 </span><span class="sd">    &gt;&gt;&gt; print(w.seen)</span>
+<span class="lineno">423 </span><span class="sd">    [2, 5]</span>
+<span class="lineno">424 </span><span class="sd">    &gt;&gt;&gt; w.is_valid(1)</span>
+<span class="lineno">425 </span><span class="sd">    False</span>
+<span class="lineno">426 </span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="lineno">427 </span>    <span class="n">window_count</span> <span class="o">=</span> <span class="mi">64</span> <span class="c1"># not a window size: window size would be size of a bit field, while this is the size of the ones</span>
+<span class="lineno">428 </span>
+<span class="lineno">429 </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seen</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="lineno">430 </span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">seen</span><span class="p">:</span> <span class="c1"># including empty-list case</span>
+<span class="lineno">431 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">seen</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="lineno">432 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">433 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">seen</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">seen</span><span class="p">)</span>
+<span class="lineno">434 </span>
+<span class="lineno">435 </span>    <span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+<span class="lineno">436 </span>        <span class="k">if</span> <span class="n">number</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+<span class="lineno">437 </span>            <span class="k">return</span> <span class="bp">False</span>
+<span class="lineno">438 </span>        <span class="k">return</span> <span class="n">number</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">seen</span>
+<span class="lineno">439 </span>
+<span class="lineno">440 </span>    <span class="k">def</span> <span class="nf">strike_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+<span class="lineno">441 </span>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+<span class="lineno">442 </span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Sequence number is not valid any more and &quot;</span>
+<span class="lineno">443 </span>                    <span class="s">&quot;thus can&#39;t be removed from the window&quot;</span><span class="p">)</span>
+<span class="lineno">444 </span>        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">):</span>
+<span class="lineno">445 </span>            <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="n">number</span><span class="p">:</span>
+<span class="lineno">446 </span>                <span class="k">break</span>
+<span class="lineno">447 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">448 </span>            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="lineno">449 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">number</span><span class="p">)</span>
+<span class="lineno">450 </span>        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">seen</span> <span class="o">==</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">)</span>
+<span class="lineno">451 </span>        <span class="c1"># cleanup</span>
+<span class="lineno">452 </span>        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span>
+<span class="lineno">453 </span>                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_count</span> <span class="ow">or</span>
+<span class="lineno">454 </span>                <span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="lineno">455 </span>                <span class="p">):</span>
+<span class="lineno">456 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="lineno">457 </span>
+<span class="lineno">458 </span><span class="k">class</span> <span class="nc">FilesystemSecurityContext</span><span class="p">(</span><span class="n">SecurityContext</span><span class="p">):</span>
+<span class="lineno">459 </span>    <span class="sd">&quot;&quot;&quot;Security context stored in a directory as distinct files containing</span>
+<span class="lineno">460 </span><span class="sd">    containing</span>
+<span class="lineno">461 </span>
+<span class="lineno">462 </span><span class="sd">    * Master secret, master salt, the sender IDs of the participants, and</span>
+<span class="lineno">463 </span><span class="sd">      optionally algorithm, the KDF hash function, and replay window size</span>
+<span class="lineno">464 </span><span class="sd">      (settings.json and secrets.json, where the latter is typically readable</span>
+<span class="lineno">465 </span><span class="sd">      only for the user)</span>
+<span class="lineno">466 </span><span class="sd">    * sequence numbers and replay windows (sequence.json, the only file the</span>
+<span class="lineno">467 </span><span class="sd">      process needs write access to)</span>
+<span class="lineno">468 </span>
+<span class="lineno">469 </span><span class="sd">    The static parameters can all either be placed in settings.json or</span>
+<span class="lineno">470 </span><span class="sd">    secrets.json, but must not be present in both; the presence of either file</span>
+<span class="lineno">471 </span><span class="sd">    is sufficient.</span>
+<span class="lineno">472 </span>
+<span class="lineno">473 </span><span class="sd">    The static files are phrased in a way that allows using the same files for</span>
+<span class="lineno">474 </span><span class="sd">    server and client; only by passing &quot;client&quot; or &quot;server&quot; as role parameter</span>
+<span class="lineno">475 </span><span class="sd">    at load time, the IDs are are assigned to the context as sender or</span>
+<span class="lineno">476 </span><span class="sd">    recipient ID. (The sequence number file is set up in a similar way in</span>
+<span class="lineno">477 </span><span class="sd">    preparation for multicast operation; but is not yet usable from a directory</span>
+<span class="lineno">478 </span><span class="sd">    shared between server and client; when multicast is actually explored, the</span>
+<span class="lineno">479 </span><span class="sd">    sequence file might be renamed to contain the sender ID for shared use of a</span>
+<span class="lineno">480 </span><span class="sd">    directory).</span>
+<span class="lineno">481 </span>
+<span class="lineno">482 </span><span class="sd">    Note that the sequence number file is updated in an atomic fashion which</span>
+<span class="lineno">483 </span><span class="sd">    requires file creation privileges in the directory. If privilege separation</span>
+<span class="lineno">484 </span><span class="sd">    between settings/key changes and sequence number changes is desired, one</span>
+<span class="lineno">485 </span><span class="sd">    way to achieve that on Linux is giving the aiocoap process&#39;s user group</span>
+<span class="lineno">486 </span><span class="sd">    write permissions on the directory and setting the sticky bit on the</span>
+<span class="lineno">487 </span><span class="sd">    directory, thus forbidding the user to remove the settings/secret files not</span>
+<span class="lineno">488 </span><span class="sd">    owned by him.</span>
+<span class="lineno">489 </span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="lineno">490 </span>
+<span class="lineno">491 </span>    <span class="k">class</span> <span class="nc">LoadError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="lineno">492 </span>        <span class="sd">&quot;&quot;&quot;Exception raised with a descriptive message when trying to load a</span>
+<span class="lineno">493 </span><span class="sd">        faulty security context&quot;&quot;&quot;</span>
+<span class="lineno">494 </span>
+<span class="lineno">495 </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basedir</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+<span class="lineno">496 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span> <span class="o">=</span> <span class="n">basedir</span>
+<span class="lineno">497 </span>        <span class="k">try</span><span class="p">:</span>
+<span class="lineno">498 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">role</span><span class="p">)</span>
+<span class="lineno">499 </span>        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">k</span><span class="p">:</span>
+<span class="lineno">500 </span>            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">LoadError</span><span class="p">(</span><span class="s">&quot;Configuration key missing: </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+<span class="lineno">501 </span>
+<span class="lineno">502 </span>    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_role</span><span class="p">):</span>
+<span class="lineno">503 </span>        <span class="c1"># doesn&#39;t check for KeyError on every occasion, relies on __init__ to</span>
+<span class="lineno">504 </span>        <span class="c1"># catch that</span>
+<span class="lineno">505 </span>
+<span class="lineno">506 </span>        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="lineno">507 </span>        <span class="k">for</span> <span class="n">readfile</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;secret.json&quot;</span><span class="p">,</span> <span class="s">&quot;settings.json&quot;</span><span class="p">):</span>
+<span class="lineno">508 </span>            <span class="k">try</span><span class="p">:</span>
+<span class="lineno">509 </span>                <span class="n">filedata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span> <span class="n">readfile</span><span class="p">)))</span>
+<span class="lineno">510 </span>            <span class="k">except</span> <span class="n">FileNotFoundError</span><span class="p">:</span>
+<span class="lineno">511 </span>                <span class="k">continue</span>
+<span class="lineno">512 </span>
+<span class="lineno">513 </span>            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">filedata</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="lineno">514 </span>                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_hex&#39;</span><span class="p">):</span>
+<span class="lineno">515 </span>                    <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+<span class="lineno">516 </span>                    <span class="n">value</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">unhexlify</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="lineno">517 </span>                <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_ascii&#39;</span><span class="p">):</span>
+<span class="lineno">518 </span>                    <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+<span class="lineno">519 </span>                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
+<span class="lineno">520 </span>
+<span class="lineno">521 </span>                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<span class="lineno">522 </span>                    <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">LoadError</span><span class="p">(</span><span class="s">&quot;Datum </span><span class="si">%r</span><span class="s"> present in multiple input files at </span><span class="si">%r</span><span class="s">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">))</span>
+<span class="lineno">523 </span>
+<span class="lineno">524 </span>                <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+<span class="lineno">525 </span>
+<span class="lineno">526 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="n">algorithms</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;algorithm&#39;</span><span class="p">,</span> <span class="s">&#39;AES-CCM-64-64-128&#39;</span><span class="p">)]</span>
+<span class="lineno">527 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">hashfun</span> <span class="o">=</span> <span class="n">hashfunctions</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kdf-hashfun&#39;</span><span class="p">,</span> <span class="s">&#39;sha256&#39;</span><span class="p">)]</span>
+<span class="lineno">528 </span>
+<span class="lineno">529 </span>        <span class="k">if</span> <span class="n">my_role</span> <span class="o">==</span> <span class="s">&#39;server&#39;</span><span class="p">:</span>
+<span class="lineno">530 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;server-sender-id&#39;</span><span class="p">]</span>
+<span class="lineno">531 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;client-sender-id&#39;</span><span class="p">]</span>
+<span class="lineno">532 </span>        <span class="k">elif</span> <span class="n">my_role</span> <span class="o">==</span> <span class="s">&#39;client&#39;</span><span class="p">:</span>
+<span class="lineno">533 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;client-sender-id&#39;</span><span class="p">]</span>
+<span class="lineno">534 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;server-sender-id&#39;</span><span class="p">]</span>
+<span class="lineno">535 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">536 </span>            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">LoadError</span><span class="p">(</span><span class="s">&quot;Unknown role&quot;</span><span class="p">)</span>
+<span class="lineno">537 </span>
+<span class="lineno">538 </span>        <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span><span class="p">))</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">iv_bytes</span> <span class="o">-</span> <span class="mi">6</span><span class="p">:</span>
+<span class="lineno">539 </span>            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">LoadError</span><span class="p">(</span><span class="s">&quot;Sender or Recipient ID too long (maximum length </span><span class="si">%s</span><span class="s"> for this algorithm)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">iv_bytes</span> <span class="o">-</span> <span class="mi">6</span><span class="p">))</span>
+<span class="lineno">540 </span>
+<span class="lineno">541 </span>        <span class="n">master_secret</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;secret&#39;</span><span class="p">]</span>
+<span class="lineno">542 </span>        <span class="n">master_salt</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;salt&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="lineno">543 </span>
+<span class="lineno">544 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">sender_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kdf</span><span class="p">(</span><span class="n">master_salt</span><span class="p">,</span> <span class="n">master_secret</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span><span class="p">,</span> <span class="s">&#39;Key&#39;</span><span class="p">)</span>
+<span class="lineno">545 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">recipient_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kdf</span><span class="p">(</span><span class="n">master_salt</span><span class="p">,</span> <span class="n">master_secret</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span><span class="p">,</span> <span class="s">&#39;Key&#39;</span><span class="p">)</span>
+<span class="lineno">546 </span>
+<span class="lineno">547 </span>        <span class="bp">self</span><span class="o">.</span><span class="n">common_iv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kdf</span><span class="p">(</span><span class="n">master_salt</span><span class="p">,</span> <span class="n">master_secret</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;IV&#39;</span><span class="p">)</span>
+<span class="lineno">548 </span>
+<span class="lineno">549 </span>        <span class="k">try</span><span class="p">:</span>
+<span class="lineno">550 </span>            <span class="n">sequence</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;sequence.json&#39;</span><span class="p">)))</span>
+<span class="lineno">551 </span>        <span class="k">except</span> <span class="n">FileNotFoundError</span><span class="p">:</span>
+<span class="lineno">552 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">sender_sequence_number</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="lineno">553 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">recipient_replay_window</span> <span class="o">=</span> <span class="n">SimpleReplayWindow</span><span class="p">([])</span>
+<span class="lineno">554 </span>        <span class="k">else</span><span class="p">:</span>
+<span class="lineno">555 </span>            <span class="n">sender_hex</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
+<span class="lineno">556 </span>            <span class="n">recipient_hex</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
+<span class="lineno">557 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">sender_sequence_number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sequence</span><span class="p">[</span><span class="s">&#39;used&#39;</span><span class="p">][</span><span class="n">sender_hex</span><span class="p">])</span>
+<span class="lineno">558 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">recipient_replay_window</span> <span class="o">=</span> <span class="n">SimpleReplayWindow</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span>
+<span class="lineno">559 </span>                <span class="n">sequence</span><span class="p">[</span><span class="s">&#39;seen&#39;</span><span class="p">][</span><span class="n">recipient_hex</span><span class="p">]])</span>
+<span class="lineno">560 </span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">[</span><span class="s">&#39;used&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">[</span><span class="s">&#39;seen&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+<span class="lineno">561 </span>                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Sequence files shared between roles are &quot;</span>
+<span class="lineno">562 </span>                        <span class="s">&quot;currently not supported.&quot;</span><span class="p">)</span>
+<span class="lineno">563 </span>
+<span class="lineno">564 </span>    <span class="k">def</span> <span class="nf">_kdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_salt</span><span class="p">,</span> <span class="n">master_secret</span><span class="p">,</span> <span class="n">role_id</span><span class="p">,</span> <span class="n">out_type</span><span class="p">):</span>
+<span class="lineno">565 </span>        <span class="n">out_bytes</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Key&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">key_bytes</span><span class="p">,</span> <span class="s">&#39;IV&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">iv_bytes</span><span class="p">}[</span><span class="n">out_type</span><span class="p">]</span>
+<span class="lineno">566 </span>
+<span class="lineno">567 </span>        <span class="n">info</span> <span class="o">=</span> <span class="n">cbor</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span>
+<span class="lineno">568 </span>            <span class="n">role_id</span><span class="p">,</span>
+<span class="lineno">569 </span>            <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+<span class="lineno">570 </span>            <span class="n">out_type</span><span class="p">,</span>
+<span class="lineno">571 </span>            <span class="n">out_bytes</span>
+<span class="lineno">572 </span>            <span class="p">])</span>
+<span class="lineno">573 </span>        <span class="n">extracted</span> <span class="o">=</span> <span class="n">hkdf</span><span class="o">.</span><span class="n">hkdf_extract</span><span class="p">(</span><span class="n">master_salt</span><span class="p">,</span> <span class="n">master_secret</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hashfun</span><span class="p">)</span>
+<span class="lineno">574 </span>        <span class="n">expanded</span> <span class="o">=</span> <span class="n">hkdf</span><span class="o">.</span><span class="n">hkdf_expand</span><span class="p">(</span><span class="n">extracted</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hashfun</span><span class="p">,</span>
+<span class="lineno">575 </span>                <span class="n">length</span><span class="o">=</span><span class="n">out_bytes</span><span class="p">)</span>
+<span class="lineno">576 </span>        <span class="k">return</span> <span class="n">expanded</span>
+<span class="lineno">577 </span>
+<span class="lineno">578 </span>    <span class="c1"># FIXME when/how will this be called?</span>
+<span class="lineno">579 </span>    <span class="c1">#</span>
+<span class="lineno">580 </span>    <span class="c1"># it might be practical to make sender_sequence_number and recipient_replay_window</span>
+<span class="lineno">581 </span>    <span class="c1"># properties private, and provide access to them in a way that triggers</span>
+<span class="lineno">582 </span>    <span class="c1"># store or at least a delayed store.</span>
+<span class="lineno">583 </span>    <span class="k">def</span> <span class="nf">_store</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="lineno">584 </span>        <span class="n">tmphand</span><span class="p">,</span> <span class="n">tmpnam</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span>
+<span class="lineno">585 </span>                <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;.sequence-&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;.json&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="lineno">586 </span>
+<span class="lineno">587 </span>        <span class="n">sender_hex</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sender_id</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
+<span class="lineno">588 </span>        <span class="n">recipient_hex</span> <span class="o">=</span> <span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recipient_id</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span>
+<span class="lineno">589 </span>
+<span class="lineno">590 </span>        <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">fdopen</span><span class="p">(</span><span class="n">tmphand</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmpfile</span><span class="p">:</span>
+<span class="lineno">591 </span>            <span class="n">tmpfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;{</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="lineno">592 </span>                <span class="s">&#39;  &quot;used&quot;: {&quot;</span><span class="si">%s</span><span class="s">&quot;: </span><span class="si">%d</span><span class="s">},</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="lineno">593 </span>                <span class="s">&#39;  &quot;seen&quot;: {&quot;</span><span class="si">%s</span><span class="s">&quot;: </span><span class="si">%s</span><span class="s">}</span><span class="se">\n</span><span class="s">}&#39;</span><span class="o">%</span><span class="p">(</span>
+<span class="lineno">594 </span>                <span class="n">sender_hex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sender_sequence_number</span><span class="p">,</span>
+<span class="lineno">595 </span>                <span class="n">recipient_hex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipient_replay_window</span><span class="o">.</span><span class="n">seen</span><span class="p">))</span>
+<span class="lineno">596 </span>
+<span class="lineno">597 </span>        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">tmpnam</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;sequence.json&#39;</span><span class="p">))</span>
+<span class="lineno">598 </span>
+<span class="lineno">599 </span>    <span class="nd">@classmethod</span>
+<span class="lineno">600 </span>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">basedir</span><span class="p">):</span>
+<span class="lineno">601 </span>        <span class="sd">&quot;&quot;&quot;Create a security context directory from default parameters and a</span>
+<span class="lineno">602 </span><span class="sd">        random key; it is an error if that directory already exists.</span>
+<span class="lineno">603 </span>
+<span class="lineno">604 </span><span class="sd">        No SecurityContext object is returned immediately, as it is expected</span>
+<span class="lineno">605 </span><span class="sd">        that the generated context can&#39;t be used immediately but first needs to</span>
+<span class="lineno">606 </span><span class="sd">        be copied to another party and then can be opened in either the sender</span>
+<span class="lineno">607 </span><span class="sd">        or the recipient role.&quot;&quot;&quot;</span>
+<span class="lineno">608 </span>        <span class="c1"># shorter would probably be OK too (that token might be suitable to</span>
+<span class="lineno">609 </span>        <span class="c1"># even skip extraction), but for the purpose of generating conformant</span>
+<span class="lineno">610 </span>        <span class="c1"># example contexts.</span>
+<span class="lineno">611 </span>        <span class="n">master_secret</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">token_bytes</span><span class="p">(</span><span class="n">nbytes</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="lineno">612 </span>
+<span class="lineno">613 </span>        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">basedir</span><span class="p">)</span>
+<span class="lineno">614 </span>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;settings.json&#39;</span><span class="p">),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">settingsfile</span><span class="p">:</span>
+<span class="lineno">615 </span>            <span class="n">settingsfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="lineno">616 </span>                    <span class="s">&#39;  &quot;server-id_hex&quot;: &quot;00&quot;,</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="lineno">617 </span>                    <span class="s">&#39;  &quot;client-id_hex&quot;: &quot;01&quot;,</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="lineno">618 </span>                    <span class="s">&#39;  &quot;algorithm&quot;: &quot;AES-CCM-16-64-128&quot;,</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="lineno">619 </span>                    <span class="s">&#39;  &quot;kdf-hashfun&quot;: &quot;sha256&quot;</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="lineno">620 </span>                    <span class="s">&#39;}&#39;</span><span class="p">)</span>
+<span class="lineno">621 </span>
+<span class="lineno">622 </span>        <span class="c1"># atomicity is not really required as this is a new directory, but the</span>
+<span class="lineno">623 </span>        <span class="c1"># readable-by-us-only property is easily achieved with mkstemp</span>
+<span class="lineno">624 </span>        <span class="n">tmphand</span><span class="p">,</span> <span class="n">tmpnam</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">basedir</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;.secret-&#39;</span><span class="p">,</span>
+<span class="lineno">625 </span>                <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;.json&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="lineno">626 </span>        <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">fdopen</span><span class="p">(</span><span class="n">tmphand</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">secretfile</span><span class="p">:</span>
+<span class="lineno">627 </span>            <span class="n">secretfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="lineno">628 </span>                    <span class="s">&#39;  &quot;secret_hex&quot;: &quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&#39;</span>
+<span class="lineno">629 </span>                    <span class="s">&#39;}&#39;</span><span class="o">%</span><span class="n">binascii</span><span class="o">.</span><span class="n">hexlify</span><span class="p">(</span><span class="n">master_secret</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+<span class="lineno">630 </span>        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">tmpnam</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;secret.json&#39;</span><span class="p">))</span>
+<span class="lineno">631 </span>
+<span class="lineno">632 </span><span class="k">def</span> <span class="nf">verify_start</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+<span class="lineno">633 </span>    <span class="sd">&quot;&quot;&quot;Extract a CID from a message for the verifier to then pick a security</span>
+<span class="lineno">634 </span><span class="sd">    context to actually verify the message.</span>
+<span class="lineno">635 </span>
+<span class="lineno">636 </span><span class="sd">    Call this only requests; for responses, you&#39;ll have to know the security</span>
+<span class="lineno">637 </span><span class="sd">    context anyway, and there is usually no information to be gained (and</span>
+<span class="lineno">638 </span><span class="sd">    things would even fail completely in compressed messages).&quot;&quot;&quot;</span>
+<span class="lineno">639 </span>
+<span class="lineno">640 </span>    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">unprotected</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SecurityContext</span><span class="o">.</span><span class="n">_extract_encrypted0</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="lineno">641 </span>
+<span class="lineno">642 </span>    <span class="k">try</span><span class="p">:</span>
+<span class="lineno">643 </span>        <span class="c1"># FIXME raise on duplicate key</span>
+<span class="lineno">644 </span>        <span class="k">return</span> <span class="n">unprotected</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="lineno">645 </span>    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+<span class="lineno">646 </span>        <span class="k">raise</span> <span class="n">NotAProtectedMessage</span><span class="p">(</span><span class="s">&quot;No Sender ID present&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+</pre></div>
+
+</body>
+</html>

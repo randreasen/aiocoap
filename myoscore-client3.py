@@ -9,6 +9,7 @@ import tempfile
 import json
 import os
 import os.path
+import binascii
 
 def floadncopy(filename):
 	filedata = json.load(open("." + contextdir + filename))
@@ -64,6 +65,8 @@ async def main():
 	unprotected_response, _ = secctx.unprotect(protected_response, original_request_seqno)
 	secctx._store()
 
+	print(request.en)
+
 	rec["secctx"] = secctx
 	rec["msgctx"] = msgctx
 	rec["request"] = request
@@ -78,3 +81,9 @@ asyncio.get_event_loop().run_until_complete(main())
 request = rec["request"]
 protected_request = rec["protected_request"]
 protected_response = rec["protected_response"]
+protected_msg = rec["protected_msg"]
+
+def getmsgbstr(msg):
+	return binascii.hexlify(msg.encode()).decode('ascii')
+
+k

@@ -48,13 +48,24 @@ if not copyexists("sequence.json"):
 
 
 secctx = oscore.FilesystemSecurityContext(contextcopy, role="client")
-request = Message(code=GET, uri="coap://localhost/hello/coap")
+request0 = Message(code=GET, uri="coap://localhost/hello/coap")
+
+def printPayload(msg):
+	print(msg.payload.hex())
+
+def printOS(msg):
+	print(msg.opt.object_security.hex())
 
 
+request1 = Message(code=POST, uri='coap://localhost/hello/6', payload=b"\x4a", content_format=0)
+request2 = Message(code=PUT, uri='coap://localhost/hello/7', payload=b"\x7a", content_format=0, if_match=[b"\x7b"])
+request3 = Message(code=DELETE, uri='coap://localhost/test')
 
-protected_msg,  original_request_seqno = secctx.protect(request)
+protected_msg0,  original_request_seqno = secctx.protect(request0)
 secctx._store()
-
-# print(bytes2ascii(protected_msg.opt.object_security))
-print(protected_msg.opt.object_security.hex())
-print(protected_msg.payload.hex())
+protected_msg1,  original_request_seqno = secctx.protect(request1)
+secctx._store()
+protected_msg2,  original_request_seqno = secctx.protect(request2)
+secctx._store()
+protected_msg3,  original_request_seqno = secctx.protect(request3)
+secctx._store()
